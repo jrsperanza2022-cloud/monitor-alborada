@@ -4,20 +4,17 @@ import requests
 st.set_page_config(page_title="Monitor Alborada Pro", layout="wide")
 
 def obtener_datos():
-    # Precios base de referencia
     p = {
         "Oficial": 1400.0, "Mayorista": 1380.5, "Blue Pizarra": 1430.0, 
         "Soja": 285.0, "Maiz": 178.0, "Trigo": 215.0, "Girasol": 300.0,
         "Aceite Girasol": 1050.0, "Aceite Soja": 980.0, "Aceite Maiz": 1100.0
     }
     try:
-        # Dólares
         r_dolar = requests.get("https://criptoya.com/api/dolar", timeout=5).json()
         p["Oficial"] = r_dolar['oficial']['price']
         p["Mayorista"] = r_dolar['mayorista']['price']
         p["Blue Pizarra"] = r_dolar['blue']['ask']
         
-        # Granos (API Argentina Datos)
         r_granos = requests.get("https://api.argentinadatos.com/v1/cotizaciones/granos", timeout=5).json()
         for g in r_granos:
             if g['especie'] == 'soja': p["Soja"] = g['valor']
@@ -49,7 +46,7 @@ g2.metric("Maíz Rosario", f"{d['Maiz']} USD")
 g3.metric("Trigo Rosario", f"{d['Trigo']} USD")
 g4.metric("Girasol", f"{d['Girasol']} USD")
 
-# FILA 3: ACEITES (LO QUE FALTABA)
+# FILA 3: ACEITES
 st.markdown("### 🧪 Aceites (USD/Tn)")
 a1, a2, a3 = st.columns(3)
 a1.metric("Aceite de Soja", f"{d['Aceite Soja']} USD")
@@ -58,18 +55,24 @@ a3.metric("Aceite de Girasol", f"{d['Aceite Girasol']} USD")
 
 st.divider()
 
-# CALCULADORA
+# CALCULADORA CON TAMAÑO UNIFICADO
 st.subheader("🧮 Calculadora de Conversión")
 with st.container(border=True):
-    col_a, col_b = st.columns(2)
-    monedas = {"Blue Real": d['Blue Real'], "Mayorista": d['Mayorista'], "Oficial": d['Oficial'], "Blue Pizarra": d['Blue Pizarra']}
-    with col_a:
-        monto = st.number_input("Monto USD", value=1000.0)
-        m_costo = st.selectbox("Desde:", list(monedas.keys()))
-    with col_b:
-        margen = st.slider("Ganancia %", 0, 30, 5)
-        m_venta = st.selectbox("A:", list(monedas.keys()), index=1)
+    col_inputs, col_resultado = st.columns([2, 1])
+    
+    with col_inputs:
+        col_a, col_b = st.columns(2)
+        monedas = {"Blue Real": d['Blue Real'], "Mayorista": d['Mayorista'], "Oficial": d['Oficial'], "Blue Pizarra": d['Blue Pizarra']}
+        with col_a:
+            monto = st.number_input("Monto USD", value=1000.0)
+            m_costo = st.selectbox("Desde:", list(monedas.keys()))
+        with col_b:
+            margen = st.slider("Ganancia %", 0, 30, 5)
+            m_venta = st.selectbox("A:", list(monedas.keys()), index=1)
 
-    res = (monto * monedas[m_costo] / monedas[m_venta]) * (1 + margen/100)
-    st.markdown(f"### Precio Final Sugerido: **{round(res, 2)} USD**")
+    with col_resultado:
+        # Aquí forzamos que el resultado use el mismo estilo de métrica que el resto de la app
+        res = (monto * monedas[m_costo] / monedas[m_venta]) * (1 + margen/100)
+        st.metric("Precio Final Sugerido", f"{round(res, 2)} USD")
+
     st.info(f"Conversión de {m_costo} (${monedas[m_costo]}) a {m_venta} (${monedas[m_venta]})")
