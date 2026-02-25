@@ -24,15 +24,14 @@ d = obtener_datos()
 
 st.title("🌾 Monitor Alborada")
 
-# DIVISAS Y GRANOS EN COLUMNAS MÁS COMPACTAS
-st.markdown("### 📊 Mercado en Vivo")
+# FILA DE MERCADO (LIMPIA)
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Blue Real", f"${d['Blue Real']}")
 c2.metric("Soja Rosario", f"{d['Soja']} USD")
 c3.metric("Maíz Rosario", f"{d['Maiz']} USD")
 c4.metric("Aceite Girasol", f"{d['Aceite']} USD")
 
-with st.expander("Ver más cotizaciones (Pizarra, Oficial, Trigo)"):
+with st.expander("Ver más cotizaciones"):
     e1, e2, e3 = st.columns(3)
     e1.write(f"**Blue Pizarra:** ${d['Blue Pizarra']}")
     e2.write(f"**Oficial BNA:** ${d['Oficial']}")
@@ -40,7 +39,7 @@ with st.expander("Ver más cotizaciones (Pizarra, Oficial, Trigo)"):
 
 st.divider()
 
-# CALCULADORA ENMASCARADA (DISEÑO LIMPIO)
+# CALCULADORA CORREGIDA
 st.subheader("🧮 Calculadora de Conversión")
 
 with st.container(border=True):
@@ -48,22 +47,19 @@ with st.container(border=True):
     monedas = {"Blue Real": d['Blue Real'], "Mayorista": d['Mayorista'], "Oficial": d['Oficial']}
     
     with col_a:
-        monto = st.number_input("Monto a convertir (USD)", value=1000.0, step=100.0)
-        m_costo = st.selectbox("Desde moneda:", list(monedas.keys()))
+        monto = st.number_input("Monto USD", value=1000.0)
+        m_costo = st.selectbox("Desde:", list(monedas.keys()))
     
     with col_b:
-        margen = st.slider("Margen de ganancia %", 0, 30, 5)
-        m_venta = st.selectbox("A moneda:", list(monedas.keys()), index=1)
+        margen = st.slider("Ganancia %", 0, 30, 5)
+        m_venta = st.selectbox("A:", list(monedas.keys()), index=1)
 
-    # CÁLCULO Y RESULTADO DESTACADO
     valor_final = (monto * monedas[m_costo] / monedas[m_venta]) * (1 + margen/100)
     
-    st.markdown(f"""
-    <div style="background-color:#1e2129; padding:20px; border-radius:10px; text-align:center; border: 1px solid #4a4a4a;">
-        <p style="margin:0; font-size:18px; color:#aaaaaa;">Precio Final Sugerido</p>
-        <h1 style="margin:0; color:#2ecc71; font-size:48px;">{round(valor_final, 2)} USD</h1>
-        <p style="margin:0; color:#555555; font-size:12px;">Usando {m_costo} a ${monedas[m_costo]} y {m_venta} a ${monedas[m_venta]}</p>
-    </div>
-    """, unsafe_allow_stdio=True, unsafe_allow_html=True)
+    # RESULTADO EN FORMATO SIMPLE PARA EVITAR ERRORES
+    st.markdown("---")
+    st.markdown(f"### Precio Final Sugerido:")
+    st.success(f"## {round(valor_final, 2)} USD")
+    st.caption(f"Cálculo: {m_costo} (${monedas[m_costo]}) a {m_venta} (${monedas[m_venta]})")
 
 st.caption("Actualización automática en cada carga.")
