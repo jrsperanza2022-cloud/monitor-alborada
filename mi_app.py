@@ -30,7 +30,7 @@ d = obtener_datos()
 
 st.title("🌾 Monitor Alborada")
 
-# FILAS DE MERCADO (TODAS TIENEN EL MISMO TAMAÑO)
+# FILAS DE MERCADO
 st.markdown("### 💵 Divisas")
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Blue Real", f"${d['Blue Real']}")
@@ -38,28 +38,21 @@ c2.metric("Blue Pizarra", f"${d['Blue Pizarra']}")
 c3.metric("Oficial BNA", f"${d['Oficial']}")
 c4.metric("Mayorista", f"${d['Mayorista']}")
 
-st.markdown("### 🚜 Granos (USD/Tn)")
+st.markdown("### 🚜 Granos y Aceites")
 g1, g2, g3, g4 = st.columns(4)
 g1.metric("Soja Rosario", f"{d['Soja']} USD")
 g2.metric("Maíz Rosario", f"{d['Maiz']} USD")
-g3.metric("Trigo Rosario", f"{d['Trigo']} USD")
-g4.metric("Girasol", f"{d['Girasol']} USD")
-
-st.markdown("### 🧪 Aceites (USD/Tn)")
-a1, a2, a3 = st.columns(3)
-a1.metric("Aceite de Soja", f"{d['Aceite Soja']} USD")
-a2.metric("Aceite de Maíz", f"{d['Aceite Maiz']} USD")
-a3.metric("Aceite de Girasol", f"{d['Aceite Girasol']} USD")
+g3.metric("Aceite Soja", f"{d['Aceite Soja']} USD")
+g4.metric("Aceite Girasol", f"{d['Aceite Girasol']} USD")
 
 st.divider()
 
-# CALCULADORA CON RESULTADO GIGANTE UNIFICADO
+# CALCULADORA CON RESULTADO "GIGANTE"
 st.subheader("🧮 Calculadora de Conversión")
 with st.container(border=True):
-    # Dividimos la pantalla: 3 partes para botones, 1 parte para el número grande
-    col_izq, col_der = st.columns([3, 1.5]) 
+    col_inputs, col_res = st.columns([2, 1])
     
-    with col_izq:
+    with col_inputs:
         c_a, c_b = st.columns(2)
         monedas = {"Blue Real": d['Blue Real'], "Mayorista": d['Mayorista'], "Oficial": d['Oficial'], "Blue Pizarra": d['Blue Pizarra']}
         with c_a:
@@ -69,10 +62,15 @@ with st.container(border=True):
             margen = st.slider("Ganancia %", 0, 30, 5)
             m_venta = st.selectbox("A:", list(monedas.keys()), index=1)
 
-    with col_der:
-        # AQUÍ ESTÁ EL CAMBIO: El resultado ahora es una métrica igual a las de arriba
+    with col_res:
         res = (monto * monedas[m_costo] / monedas[m_venta]) * (1 + margen/100)
-        st.write("## ") # Espacio para alinear
-        st.metric(label="PRECIO FINAL", value=f"{round(res, 2)} USD")
+        # ESTILO PERSONALIZADO PARA TAMAÑO GRANDE
+        st.markdown(f"""
+            <div style="text-align: right; padding-top: 10px;">
+                <p style="color: #808495; font-size: 16px; margin-bottom: 5px;">PRECIO FINAL SUGERIDO</p>
+                <p style="color: #2ecc71; font-size: 55px; font-weight: bold; margin: 0;">{round(res, 2)}</p>
+                <p style="color: #2ecc71; font-size: 20px; font-weight: bold; margin: 0;">USD</p>
+            </div>
+        """, unsafe_allow_html=True)
 
     st.caption(f"Conversión: {m_costo} (${monedas[m_costo]}) a {m_venta} (${monedas[m_venta]})")
